@@ -1,0 +1,2 @@
+"E:\sean\project\laser2\laser2.obj",
+"E:\sean\project\laser2\STARTUP.obj"  TO "E:\sean\project\laser2\laser2" RS(256) PL(68) PW(78)  
