@@ -2,7 +2,7 @@
 BL51 BANKED LINKER/LOCATER V6.22 - SN: K1MMC-8SQW2C
 COPYRIGHT KEIL ELEKTRONIK GmbH 1987 - 2009
 "E:\sean\project\laser2\laser2.obj",
-"E:\sean\project\laser2\STARTUP.obj"  TO "E:\sean\project\laser2\laser2" RS(256) PL(68) PW(78)  
+"E:\sean\project\laser2\STARTUP.obj"  TO "E:\sean\project\laser2\laser2" RS(256) PL(68) PW(78) 
 
-Program Size: data=9.0 xdata=2 code=399
+Program Size: data=9.0 xdata=2 code=373
 LINK/LOCATE RUN COMPLETE.  0 WARNING(S),  0 ERROR(S)

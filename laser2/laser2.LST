@@ -1,4 +1,4 @@
-C51 COMPILER V9.52.0.0   LASER2                                                            03/21/2016 16:33:21 PAGE 1   
+C51 COMPILER V9.52.0.0   LASER2                                                            03/22/2016 10:06:04 PAGE 1   
 
 
 C51 COMPILER V9.52.0.0, COMPILATION OF MODULE LASER2
@@ -62,7 +62,7 @@ line level    source
   53          // Target:         C8051F350
   54          //
   55          // Release 1.0
-C51 COMPILER V9.52.0.0   LASER2                                                            03/21/2016 16:33:21 PAGE 2   
+C51 COMPILER V9.52.0.0   LASER2                                                            03/22/2016 10:06:04 PAGE 2   
 
   56          //    -Initial Revision (SM / TP)
   57          //    - 19 MAR 2016
@@ -126,7 +126,7 @@ line level    source
  115          
  116          
  117          unsigned char BATTERY;
-C51 COMPILER V9.52.0.0   LASER2                                                            03/21/2016 16:33:21 PAGE 3   
+C51 COMPILER V9.52.0.0   LASER2                                                            03/22/2016 10:06:04 PAGE 3   
 
  118          unsigned char LASER;
  119          
@@ -140,7 +140,7 @@ line level    source
  127          void Port_Init (void);
  128          void Oscillator_Init (void);
  129          void PCA_Init (void);
- 130          void UART0_Init (void);
+ 130          //void UART0_Init (void);
  131          void ADC0_Init(void);
  132          void Ext_Interrupt_Init (void);
  133          void Timer2_Init (int counts);
@@ -161,7 +161,7 @@ line level    source
  148   1                                              // enable)
  149   1         PCA_Init();
  150   1      
- 151   1         UART0_Init();                        // Initialize UART0 for printf's
+ 151   1      //   UART0_Init();                              // Initialize UART0 for printf's
  152   1         Ext_Interrupt_Init();                // Initialize External Interrupts
  153   1                  
  154   1         ADC0_Init();                         // Initialize ADC0
@@ -190,7 +190,7 @@ line level    source
  177   1              //        = ( 256 x 255(0xFF)) + 256 - 0
  178   1              // Time   = Offset * (12/SYSCLK)   
  179   1              //        = 213 ms ( PCA uses SYSCLK/12 as its clock source)            
-C51 COMPILER V9.52.0.0   LASER2                                                            03/21/2016 16:33:21 PAGE 4   
+C51 COMPILER V9.52.0.0   LASER2                                                            03/22/2016 10:06:04 PAGE 4   
 
  180   1                      
  181   1         PCA0MD  &= ~0x40;                    // WDTE = 0 (clear watchdog timer 
@@ -254,16 +254,16 @@ line level    source
  239          {
  240   1      
  241   1         P0MDIN &= ~0x0C;                     // P0.2, P0.3 are analog
-C51 COMPILER V9.52.0.0   LASER2                                                            03/21/2016 16:33:21 PAGE 5   
+C51 COMPILER V9.52.0.0   LASER2                                                            03/22/2016 10:06:04 PAGE 5   
 
  242   1         
- 243   1         P0MDOUT |= 0x50;                     // TX, LEDs = Push-pull
+ 243   1         P0MDOUT |= 0x40;                     // TX, LEDs = Push-pull
  244   1      
  245   1        
  246   1      
  247   1         P0SKIP |= 0x00;                      // none skipped in the Crossbar
  248   1           
- 249   1         XBR0 = 0x01;                         // UART0 Selected
+ 249   1         XBR0 = 0x00;                         // UART0 Selected
  250   1      
  251   1         P1MDOUT |= 0x1C;
  252   1      
@@ -318,7 +318,7 @@ line level    source
  301   1      }
  302          
  303          
-C51 COMPILER V9.52.0.0   LASER2                                                            03/21/2016 16:33:21 PAGE 6   
+C51 COMPILER V9.52.0.0   LASER2                                                            03/22/2016 10:06:04 PAGE 6   
 
  304          //-----------------------------------------------------------------------------
  305          // UART0_Init
@@ -330,240 +330,238 @@ line level    source
  311          // Configure the UART0 using Timer1, for <BAUDRATE> and 8-N-1.
  312          //
  313          //-----------------------------------------------------------------------------
- 314          void UART0_Init (void)
- 315          {
- 316   1         SCON0 = 0x10;                        // SCON0: 8-bit variable bit rate
- 317   1                                              //        level of STOP bit is ignored
- 318   1                                              //        RX enabled
- 319   1                                              //        ninth bits are zeros
- 320   1                                              //        clear RI0 and TI0 bits
- 321   1         if (SYSCLK/BAUDRATE/2/256 < 1) {
- 322   2            TH1 = -(SYSCLK/BAUDRATE/2);
- 323   2            CKCON |=  0x08;                   // T1M = 1; SCA1:0 = xx
- 324   2         } else if (SYSCLK/BAUDRATE/2/256 < 4) {
- 325   2            TH1 = -(SYSCLK/BAUDRATE/2/4);
- 326   2            CKCON &= ~0x0B;                   // T1M = 0; SCA1:0 = 01
- 327   2            CKCON |=  0x01;
- 328   2         } else if (SYSCLK/BAUDRATE/2/256 < 12) {
- 329   2            TH1 = -(SYSCLK/BAUDRATE/2/12);
- 330   2            CKCON &= ~0x0B;                   // T1M = 0; SCA1:0 = 00
- 331   2         } else if (SYSCLK/BAUDRATE/2/256 < 48) {
- 332   2            TH1 = -(SYSCLK/BAUDRATE/2/48);
- 333   2            CKCON &= ~0x0B;                   // T1M = 0; SCA1:0 = 10
- 334   2            CKCON |=  0x02;
- 335   2         } else {
- 336   2            while (1);                        // Error.  Unsupported baud rate
- 337   2         }
- 338   1      
- 339   1         TL1 = TH1;                           // Init Timer1
- 340   1         TMOD &= ~0xf0;                       // TMOD: timer 1 in 8-bit autoreload
- 341   1         TMOD |=  0x20;
- 342   1         TR1 = 1;                             // START Timer1
- 343   1         TI0 = 1;                             // Indicate TX0 ready
- 344   1      }
- 345          
- 346          
- 347          //-----------------------------------------------------------------------------
- 348          // ADC0_Init
+ 314          /*
+ 315          
+ 316          void UART0_Init (void)
+ 317          {
+ 318             SCON0 = 0x10;                        // SCON0: 8-bit variable bit rate
+ 319                                                  //        level of STOP bit is ignored
+ 320                                                  //        RX enabled
+ 321                                                  //        ninth bits are zeros
+ 322                                                  //        clear RI0 and TI0 bits
+ 323             if (SYSCLK/BAUDRATE/2/256 < 1) {
+ 324                TH1 = -(SYSCLK/BAUDRATE/2);
+ 325                CKCON |=  0x08;                   // T1M = 1; SCA1:0 = xx
+ 326             } else if (SYSCLK/BAUDRATE/2/256 < 4) {
+ 327                TH1 = -(SYSCLK/BAUDRATE/2/4);
+ 328                CKCON &= ~0x0B;                   // T1M = 0; SCA1:0 = 01
+ 329                CKCON |=  0x01;
+ 330             } else if (SYSCLK/BAUDRATE/2/256 < 12) {
+ 331                TH1 = -(SYSCLK/BAUDRATE/2/12);
+ 332                CKCON &= ~0x0B;                   // T1M = 0; SCA1:0 = 00
+ 333             } else if (SYSCLK/BAUDRATE/2/256 < 48) {
+ 334                TH1 = -(SYSCLK/BAUDRATE/2/48);
+ 335                CKCON &= ~0x0B;                   // T1M = 0; SCA1:0 = 10
+ 336                CKCON |=  0x02;
+ 337             } else {
+ 338                while (1);                        // Error.  Unsupported baud rate
+ 339             }
+ 340          
+ 341             TL1 = TH1;                           // Init Timer1
+ 342             TMOD &= ~0xf0;                       // TMOD: timer 1 in 8-bit autoreload
+ 343             TMOD |=  0x20;
+ 344             TR1 = 1;                             // START Timer1
+ 345             TI0 = 1;                             // Indicate TX0 ready
+ 346          }
+ 347          
+ 348          */
  349          //-----------------------------------------------------------------------------
- 350          //
- 351          // Return Value : None
- 352          // Parameters   : None
- 353          //
- 354          // Initialize the ADC to use the temperature sensor. (non-differential)
+ 350          // ADC0_Init
+ 351          //-----------------------------------------------------------------------------
+ 352          //
+ 353          // Return Value : None
+ 354          // Parameters   : None
  355          //
- 356          //-----------------------------------------------------------------------------
- 357          
- 358          void ADC0_Init (void)
- 359          {
- 360   1         REF0CN &= ~0x01;                     // disable internal vref
- 361   1         ADC0CN = 0x00;                       // Gain = 1, Unipolar mode
- 362   1         ADC0CF = 0x04;                       // Interrupts upon SINC3 filter output
- 363   1                                              // and uses external VREF
- 364   1      
- 365   1         ADC0CLK = (SYSCLK/MDCLK)-1;          // Generate MDCLK for modulator.
-C51 COMPILER V9.52.0.0   LASER2                                                            03/21/2016 16:33:21 PAGE 7   
+ 356          // Initialize the ADC to use the temperature sensor. (non-differential)
+ 357          //
+ 358          //-----------------------------------------------------------------------------
+ 359          
+ 360          void ADC0_Init (void)
+ 361          {
+ 362   1         REF0CN &= ~0x01;                     // disable internal vref
+ 363   1         ADC0CN = 0x00;                       // Gain = 1, Unipolar mode
+ 364   1         ADC0CF = 0x04;                       // Interrupts upon SINC3 filter output
+ 365   1                                              // and uses external VREF
+C51 COMPILER V9.52.0.0   LASER2                                                            03/22/2016 10:06:04 PAGE 7   
 
- 366   1                                              // Ideally MDCLK = 2.4576MHz
- 367   1      
- 368   1         // Program decimation rate for desired OWR
- 369   1         ADC0DEC = ((unsigned long) MDCLK / (unsigned long) OWR /
- 370   1                    (unsigned long) 128) - 1;
- 371   1      
- 372   1         ADC0BUF = 0x00;                      // Turn off Input Buffers
- 373   1         ADC0MUX = 0x18;                      // Select AIN0.0
- 374   1      
- 375   1         ADC0MD = 0x81;                       // Start internal calibration
- 376   1         while(AD0CALC != 1);                 // Wait until calibration is complete
- 377   1      
- 378   1         EIE1   |= 0x08;                      // Enable ADC0 Interrupts
- 379   1         ADC0MD  = 0x80;                      // Enable the ADC0 (IDLE Mode)
- 380   1      
- 381   1      }
- 382          
- 383          
- 384          void Ext_Interrupt_Init (void)
- 385          {
- 386   1          
- 387   1         TCON = 0x01;                        // /INT 0 are edge triggered
- 388   1      
- 389   1         IT01CF = 0x07;                      // /INT0 active low; /INT0 on P1.0;
+ 366   1      
+ 367   1         ADC0CLK = (SYSCLK/MDCLK)-1;          // Generate MDCLK for modulator.
+ 368   1                                              // Ideally MDCLK = 2.4576MHz
+ 369   1      
+ 370   1         // Program decimation rate for desired OWR
+ 371   1         ADC0DEC = ((unsigned long) MDCLK / (unsigned long) OWR /
+ 372   1                    (unsigned long) 128) - 1;
+ 373   1      
+ 374   1         ADC0BUF = 0x00;                      // Turn off Input Buffers
+ 375   1         ADC0MUX = 0x18;                      // Select AIN0.0
+ 376   1      
+ 377   1         ADC0MD = 0x81;                       // Start internal calibration
+ 378   1         while(AD0CALC != 1);                 // Wait until calibration is complete
+ 379   1      
+ 380   1         EIE1   |= 0x08;                      // Enable ADC0 Interrupts
+ 381   1         ADC0MD  = 0x80;                      // Enable the ADC0 (IDLE Mode)
+ 382   1      
+ 383   1      }
+ 384          
+ 385          
+ 386          void Ext_Interrupt_Init (void)
+ 387          {
+ 388   1          
+ 389   1         TCON = 0x01;                        // /INT 0 are edge triggered
  390   1      
- 391   1         EX0 = 1;                            // Enable /INT0 interrupts                           
+ 391   1         IT01CF = 0x07;                      // /INT0 active low; /INT0 on P1.0;
  392   1      
- 393   1      }
- 394          
- 395          //-----------------------------------------------------------------------------
- 396          // Interrupt Service Routines
+ 393   1         EX0 = 1;                            // Enable /INT0 interrupts                           
+ 394   1      
+ 395   1      }
+ 396          
  397          //-----------------------------------------------------------------------------
- 398          
+ 398          // Interrupt Service Routines
  399          //-----------------------------------------------------------------------------
- 400          // ADC0_ISR
+ 400          
  401          //-----------------------------------------------------------------------------
- 402          //
- 403          // This ISR prints the result to the UART. The ISR is called after each ADC
- 404          // conversion.
- 405          //
- 406          //-----------------------------------------------------------------------------
- 407          
- 408          void INT0_ISR (void) interrupt 0
- 409          {
- 410   1      
- 411   1        if(IT01CF == 0x0F)
- 412   1         {
- 413   2                      SWITCH = 0;
- 414   2                      return;
- 415   2              }
- 416   1      
- 417   1         if(IT01CF == 0x07)
- 418   1         {
- 419   2                      SWITCH = 1;
- 420   2      
- 421   2                      EX0 = 1;
- 422   2                      EA = 1;
- 423   2                      IT01CF = 0x0F;
- 424   2                      return;
- 425   2         }
- 426   1      
- 427   1      }
-C51 COMPILER V9.52.0.0   LASER2                                                            03/21/2016 16:33:21 PAGE 8   
+ 402          // ADC0_ISR
+ 403          //-----------------------------------------------------------------------------
+ 404          //
+ 405          // This ISR prints the result to the UART. The ISR is called after each ADC
+ 406          // conversion.
+ 407          //
+ 408          //-----------------------------------------------------------------------------
+ 409          
+ 410          void INT0_ISR (void) interrupt 0
+ 411          {
+ 412   1      
+ 413   1        if(IT01CF == 0x0F)
+ 414   1         {
+ 415   2                      SWITCH = 0;
+ 416   2                      return;
+ 417   2              }
+ 418   1      
+ 419   1         if(IT01CF == 0x07)
+ 420   1         {
+ 421   2                      SWITCH = 1;
+ 422   2      
+ 423   2                      EX0 = 1;
+ 424   2                      EA = 1;
+ 425   2                      IT01CF = 0x0F;
+ 426   2                      return;
+ 427   2         }
+C51 COMPILER V9.52.0.0   LASER2                                                            03/22/2016 10:06:04 PAGE 8   
 
- 428          
- 429          
+ 428   1      
+ 429   1      }
  430          
- 431          void ADC0_ISR (void) interrupt 10
- 432          {
- 433   1              if(ADC0MUX == 0x18)
- 434   1              {
- 435   2              while(!AD0INT);                         // Wait till conversion complete
- 436   2              AD0INT = 0;  
- 437   2                      BATTERY = (unsigned char)ADC0H;                         // Clear ADC0 conversion complete flag
- 438   2      
- 439   2                      if (BATTERY > 0xE0)
- 440   2                      {
- 441   3                              BAT_SHOW = 1;
- 442   3                              //BAT_SHOW = ~BAT_SHOW;
- 443   3      
- 444   3                      }        
- 445   2                      
- 446   2                      if (BATTERY < 0xE0)
- 447   2                      {
- 448   3                              BAT_SHOW = ~BAT_SHOW;
- 449   3                              //BAT_SHOW = 1;
- 450   3                      }
- 451   2              }
- 452   1      
- 453   1              
- 454   1              if(ADC0MUX == 0x08)
- 455   1              {
- 456   2                  while(!AD0INT);                             // Wait till conversion complete
- 457   2              AD0INT = 0;                             // Clear ADC0 conversion complete flag
- 458   2                      LASER = (unsigned char)ADC0H;                           // Clear ADC0 conversion complete flag
- 459   2                      
- 460   2                      
- 461   2                      if (LASER > 0x30)
- 462   2                      {
- 463   3                              ON = 0 ;
- 464   3                      OFF = 1 ;
- 465   3                      }        
- 466   2                      
- 467   2                      if (LASER < 0x30)
- 468   2                      {
- 469   3                              ON = 1;
- 470   3                      OFF = 0;
- 471   3                      }
- 472   2      
- 473   2              }
- 474   1      
- 475   1              if(ADC0MUX == 0x18)
- 476   1              {
- 477   2      
- 478   2      
+ 431          
+ 432          
+ 433          void ADC0_ISR (void) interrupt 10
+ 434          {
+ 435   1              if(ADC0MUX == 0x18)
+ 436   1              {
+ 437   2              while(!AD0INT);                         // Wait till conversion complete
+ 438   2              AD0INT = 0;  
+ 439   2                      BATTERY = (unsigned char)ADC0H;                         // Clear ADC0 conversion complete flag
+ 440   2      
+ 441   2                      if (BATTERY >= 0x99)
+ 442   2                      {
+ 443   3                              BAT_SHOW = 1;
+ 444   3                              //BAT_SHOW = ~BAT_SHOW;
+ 445   3      
+ 446   3                      }        
+ 447   2                      
+ 448   2                      if (BATTERY < 0x99)
+ 449   2                      {
+ 450   3                              BAT_SHOW = ~BAT_SHOW;
+ 451   3                              //BAT_SHOW = 1;
+ 452   3                      }
+ 453   2              }
+ 454   1      
+ 455   1              
+ 456   1              if(ADC0MUX == 0x08)
+ 457   1              {
+ 458   2                  while(!AD0INT);                             // Wait till conversion complete
+ 459   2              AD0INT = 0;                             // Clear ADC0 conversion complete flag
+ 460   2                      LASER = (unsigned char)ADC0H;                           // Clear ADC0 conversion complete flag
+ 461   2                      
+ 462   2                      
+ 463   2                      if (LASER >= 0x28)
+ 464   2                      {
+ 465   3                              ON = 0 ;
+ 466   3                      OFF = 1 ;
+ 467   3                      }        
+ 468   2                      
+ 469   2                      if (LASER < 0x28)
+ 470   2                      {
+ 471   3                              ON = 1;
+ 472   3                      OFF = 0;
+ 473   3                      }
+ 474   2      
+ 475   2              }
+ 476   1      
+ 477   1              if(ADC0MUX == 0x18)
+ 478   1              {
  479   2      
  480   2      
- 481   2      
- 482   2                 ADC0MD  = 0x80;                      // Enable the ADC0 (IDLE Mode)
- 483   2                 ADC0MUX = 0x08;                      // Select AIN0.0
- 484   2                 ADC0MD  = 0x83;                      // Enable the ADC0 (IDLE Mode)
- 485   2      
- 486   2                      return;
- 487   2              }
- 488   1              
- 489   1              if(ADC0MUX == 0x08)
-C51 COMPILER V9.52.0.0   LASER2                                                            03/21/2016 16:33:21 PAGE 9   
+ 481   2                 ADC0MD  = 0x80;                      // Enable the ADC0 (IDLE Mode)
+ 482   2                 ADC0MUX = 0x08;                      // Select AIN0.0
+ 483   2                 ADC0MD  = 0x83;                      // Enable the ADC0 (IDLE Mode)
+ 484   2      
+ 485   2                      return;
+ 486   2              }
+ 487   1              
+ 488   1              if(ADC0MUX == 0x08)
+ 489   1              {
+C51 COMPILER V9.52.0.0   LASER2                                                            03/22/2016 10:06:04 PAGE 9   
 
- 490   1              {
+ 490   2      
  491   2      
- 492   2      
- 493   2                 ADC0MD  = 0x80;                      // Enable the ADC0 (IDLE Mode)
- 494   2                 ADC0MUX = 0x18;                      // Select AIN0.0
- 495   2                 ADC0MD  = 0x83;                      // Enable the ADC0 (IDLE Mode)
- 496   2                      return;
- 497   2              }
- 498   1      
- 499   1      }
- 500          
- 501          void Timer2_Init (int counts)
- 502          {
- 503   1         TMR2CN  = 0x00;                      // Stop Timer2; Clear TF2;
- 504   1                                              // use SYSCLK/12 as timebase
- 505   1         CKCON  &= ~0x60;                     // Timer2 clocked based on T2XCLK;
- 506   1      
- 507   1         TMR2RL  = -counts;                   // Init reload values
- 508   1         TMR2    = 0xffff;                    // set to reload immediately
- 509   1         ET2     = 1;                         // enable Timer2 interrupts
- 510   1         TR2     = 1;                         // start Timer2
- 511   1      }
+ 492   2                 ADC0MD  = 0x80;                      // Enable the ADC0 (IDLE Mode)
+ 493   2                 ADC0MUX = 0x18;                      // Select AIN0.0
+ 494   2                 ADC0MD  = 0x83;                      // Enable the ADC0 (IDLE Mode)
+ 495   2                      return;
+ 496   2              }
+ 497   1      
+ 498   1      }
+ 499          
+ 500          void Timer2_Init (int counts)
+ 501          {
+ 502   1         TMR2CN  = 0x00;                      // Stop Timer2; Clear TF2;
+ 503   1                                              // use SYSCLK/12 as timebase
+ 504   1         CKCON  &= ~0x60;                     // Timer2 clocked based on T2XCLK;
+ 505   1      
+ 506   1         TMR2RL  = -counts;                   // Init reload values
+ 507   1         TMR2    = 0xffff;                    // set to reload immediately
+ 508   1         ET2     = 1;                         // enable Timer2 interrupts
+ 509   1         TR2     = 1;                         // start Timer2
+ 510   1      }
+ 511          
  512          
- 513          
- 514          //-----------------------------------------------------------------------------
- 515          // Interrupt Service Routines
- 516          //-----------------------------------------------------------------------------
- 517          
- 518          //-----------------------------------------------------------------------------
- 519          // Timer2_ISR
- 520          //-----------------------------------------------------------------------------
- 521          // This routine changes the state of the LED whenever Timer2 overflows.
- 522          //-----------------------------------------------------------------------------
+ 513          //-----------------------------------------------------------------------------
+ 514          // Interrupt Service Routines
+ 515          //-----------------------------------------------------------------------------
+ 516          
+ 517          //-----------------------------------------------------------------------------
+ 518          // Timer2_ISR
+ 519          //-----------------------------------------------------------------------------
+ 520          // This routine changes the state of the LED whenever Timer2 overflows.
+ 521          //-----------------------------------------------------------------------------
+ 522          
  523          
  524          
- 525          
- 526          void Timer2_ISR (void) interrupt 5
- 527          {
- 528   1         TF2H = 0;                            // clear Timer2 interrupt flags
- 529   1      }
+ 525          void Timer2_ISR (void) interrupt 5
+ 526          {
+ 527   1         TF2H = 0;                            // clear Timer2 interrupt flags
+ 528   1      }
+ 529          
  530          
  531          
  532          
- 533          
- 534          //-----------------------------------------------------------------------------
- 535          // End Of File
- 536          //-----------------------------------------------------------------------------
-*** WARNING C294 IN LINE 325 OF laser2.c: unreachable code
+ 533          //-----------------------------------------------------------------------------
+ 534          // End Of File
+ 535          //-----------------------------------------------------------------------------
 
 
 MODULE INFORMATION:   STATIC OVERLAYABLE
-   CODE SIZE        =    375    ----
+   CODE SIZE        =    349    ----
    CONSTANT SIZE    =   ----    ----
    XDATA SIZE       =      2    ----
    PDATA SIZE       =   ----    ----
@@ -573,4 +571,4 @@ MODULE INFORMATION:   STATIC OVERLAYABLE
 END OF MODULE INFORMATION.
 
 
-C51 COMPILATION COMPLETE.  1 WARNING(S),  0 ERROR(S)
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

@@ -127,7 +127,7 @@ unsigned char LASER;
 void Port_Init (void);
 void Oscillator_Init (void);
 void PCA_Init (void);
-void UART0_Init (void);
+//void UART0_Init (void);
 void ADC0_Init(void);
 void Ext_Interrupt_Init (void);
 void Timer2_Init (int counts);
@@ -148,7 +148,7 @@ void main (void)
                                       	// enable)
    PCA_Init();
 
-   UART0_Init();                       	// Initialize UART0 for printf's
+//   UART0_Init();                       	// Initialize UART0 for printf's
    Ext_Interrupt_Init();                // Initialize External Interrupts
             
    ADC0_Init();                        	// Initialize ADC0
@@ -240,13 +240,13 @@ void Port_Init (void)
 
    P0MDIN &= ~0x0C;                    	// P0.2, P0.3 are analog
    
-   P0MDOUT |= 0x50;                    	// TX, LEDs = Push-pull
+   P0MDOUT |= 0x40;                    	// TX, LEDs = Push-pull
 
   
 
    P0SKIP |= 0x00;                     	// none skipped in the Crossbar
      
-   XBR0 = 0x01;                        	// UART0 Selected
+   XBR0 = 0x00;                        	// UART0 Selected
 
    P1MDOUT |= 0x1C;
 
@@ -311,6 +311,8 @@ void PCA_Init()
 // Configure the UART0 using Timer1, for <BAUDRATE> and 8-N-1.
 //
 //-----------------------------------------------------------------------------
+/*
+
 void UART0_Init (void)
 {
    SCON0 = 0x10;                       	// SCON0: 8-bit variable bit rate
@@ -343,7 +345,7 @@ void UART0_Init (void)
    TI0 = 1;                            	// Indicate TX0 ready
 }
 
-
+*/
 //-----------------------------------------------------------------------------
 // ADC0_Init
 //-----------------------------------------------------------------------------
@@ -436,14 +438,14 @@ void ADC0_ISR (void) interrupt 10
         AD0INT = 0;  
 		BATTERY = (unsigned char)ADC0H;                       	// Clear ADC0 conversion complete flag
 
- 		if (BATTERY > 0xE0)
+ 		if (BATTERY >= 0x99)
 		{
 			BAT_SHOW = 1;
 			//BAT_SHOW = ~BAT_SHOW;
 
 		}        
 		
-		if (BATTERY < 0xE0)
+		if (BATTERY < 0x99)
 		{
 			BAT_SHOW = ~BAT_SHOW;
 			//BAT_SHOW = 1;
@@ -458,13 +460,13 @@ void ADC0_ISR (void) interrupt 10
 		LASER = (unsigned char)ADC0H;                       	// Clear ADC0 conversion complete flag
  		
 		
-		if (LASER > 0x30)
+		if (LASER >= 0x28)
 		{
 			ON = 0 ;
         	OFF = 1 ;
 		}        
 		
-		if (LASER < 0x30)
+		if (LASER < 0x28)
 		{
 			ON = 1;
         	OFF = 0;
@@ -474,9 +476,6 @@ void ADC0_ISR (void) interrupt 10
 
 	if(ADC0MUX == 0x18)
 	{
-
-
-
 
 
 	   ADC0MD  = 0x80;                     	// Enable the ADC0 (IDLE Mode)
@@ -492,7 +491,6 @@ void ADC0_ISR (void) interrupt 10
 
 	   ADC0MD  = 0x80;                     	// Enable the ADC0 (IDLE Mode)
 	   ADC0MUX = 0x18;                     	// Select AIN0.0
-	   ADC0CN = 0x00;                      	// Gain = 1, Unipolar mode
 	   ADC0MD  = 0x83;                     	// Enable the ADC0 (IDLE Mode)
 		return;
 	}
